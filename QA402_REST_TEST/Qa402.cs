@@ -96,7 +96,7 @@ namespace QA402_REST_TEST
 
         static public async Task SetGen1(double freqHz, double ampDbv, bool enabled)
         {
-            await Put(string.Format($"/Settings/AudioGen/Gen1/{freqHz.ToString()}/{ampDbv.ToString()}/{0}", enabled ? "True" : "False"));
+            await Put(string.Format("/Settings/AudioGen/Gen1/{0}/{1}/{2}", enabled ? "On" : "Off", freqHz.ToString(), ampDbv.ToString()));
         }
 
         static public async Task DoAcquisitionAsync(double[] left, double[] right)

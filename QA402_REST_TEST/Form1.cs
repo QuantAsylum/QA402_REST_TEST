@@ -116,18 +116,9 @@ namespace QA402_REST_TEST
             string sFullMeasurementStart = "Full Measurement Start";
             tflp.Controls.Add(new TButton(sFullMeasurementStart, async () => 
             {
-                if (Ct == null)
-                {
-                    Ct = new CancellationTokenSource();
-                    await MakeMeasurement(Ct.Token);
-                }
-
-                if (Ct.IsCancellationRequested)
-                {
-                    Ct.Dispose();
-                    Ct = new CancellationTokenSource();
-                    await MakeMeasurement(Ct.Token);
-                }
+                Ct?.Dispose();
+                Ct = new CancellationTokenSource();
+                await MakeMeasurement(Ct.Token); 
             }));
             tgb.Controls.Add(tflp);
             Tlp.Controls.Add(tgb);
@@ -142,6 +133,30 @@ namespace QA402_REST_TEST
             }));
             tgb.Controls.Add(tflp);
             Tlp.Controls.Add(tgb);
+
+            string sStartRunning = "Start Running";
+            tflp.Controls.Add(new TButton(sStartRunning, async () =>
+            {
+                Ct?.Dispose();
+                Ct = new CancellationTokenSource();
+                await RunUntilStopped(Ct.Token);
+            }));
+            tgb.Controls.Add(tflp);
+            Tlp.Controls.Add(tgb);
+
+            string sStopRunning = "Stop Running";
+            tflp.Controls.Add(new TButton(sStopRunning, async () =>
+            {
+                if (Ct == null)
+                    return;
+
+                Ct.Cancel();
+            }));
+            tgb.Controls.Add(tflp);
+            Tlp.Controls.Add(tgb);
+
+
+
 
 
 
@@ -199,6 +214,24 @@ namespace QA402_REST_TEST
                 // With sig gen set to 0 dBV above, this means a freq series would have a sine peak of 1.00 = 0 dBV
                 LeftRightFrequencySeries lrfs = await Qa402.GetInputFrequencySeries();
                 // Do whatever processing you need on the raw freq series
+            }
+        }
+
+        /// <summary>
+        /// Shows how to update the frequency display repeatedly while the test app UI still remains responsive. This can 
+        /// be useful if test personnel are required to tune parameters while looking at a display (for example, to adjust
+        /// frequency or amplitude while turning a potentiometer).
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        async Task RunUntilStopped(CancellationToken ct)
+        {
+            // Caller will set the cancellation token when it's time to stop
+            while (ct.IsCancellationRequested == false)
+            {
+                // Do the acquisition. The await operator means the execution of this method will
+                // block until the operation (in this case, DoAcquisition() is complete. 
+                await Qa402.DoAcquisition();
             }
         }
 
