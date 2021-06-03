@@ -71,6 +71,12 @@ namespace QA402_REST_TEST
             string bufferSizeSmall = "/Settings/BuffersSize/2^12";
             tflp.Controls.Add(new TButton(bufferSizeSmall, async () => { await RunnerNoReturn(() => Qa402.SetBufferSize((uint)Math.Pow(2, 12)), bufferSizeSmall); }));
 
+            string idleGenOn = "/Settings/IdleGen/On";
+            tflp.Controls.Add(new TButton(idleGenOn, async () => { await RunnerNoReturn(() => Qa402.SetIdleGen(true), idleGenOn); }));
+
+            string idleGenOff = "/Settings/IdleGen/Off";
+            tflp.Controls.Add(new TButton(idleGenOff, async () => { await RunnerNoReturn(() => Qa402.SetIdleGen(false), idleGenOff); }));
+
             tgb.Controls.Add(tflp);
 
             Tlp.Controls.Add(tgb);

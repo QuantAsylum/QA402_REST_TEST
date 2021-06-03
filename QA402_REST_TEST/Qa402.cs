@@ -78,6 +78,11 @@ namespace QA402_REST_TEST
             await Put(string.Format("/Settings/BufferSize/{0}", bufferSizePowerOfTwo));
         }
 
+        static public async Task SetIdleGen(bool enable)
+        {
+            await Put(string.Format("/Settings/IdleGen/{0}", enable ? "On" : "Off"));
+        }
+
         static public async Task SetInputRange(int maxInputDbv, bool roundToNearest = false)
         {
             if (roundToNearest)
