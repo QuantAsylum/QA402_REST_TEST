@@ -31,6 +31,7 @@ namespace QA402_REST_TEST
             Tlp.Dock = DockStyle.Fill;
 
             TGroupBox tgb = new TGroupBox("Basic");
+            tgb.Height = 120;
 
             TFlowLayoutPanel tflp = new TFlowLayoutPanel();
 
@@ -76,6 +77,18 @@ namespace QA402_REST_TEST
 
             string idleGenOff = "/Settings/IdleGen/Off";
             tflp.Controls.Add(new TButton(idleGenOff, async () => { await RunnerNoReturn(() => Qa402.SetIdleGen(false), idleGenOff); }));
+
+            string sourceSine = "/Settings/OutputSource/Sine";
+            tflp.Controls.Add(new TButton(sourceSine, async () => { await RunnerNoReturn(() => Qa402.SetOutputSourceSine(), sourceSine); }));
+
+            string sourceNoise = "/Settings/OutputSource/WhiteNoise";
+            tflp.Controls.Add(new TButton(sourceNoise, async () => { await RunnerNoReturn(() => Qa402.SetOutputSourceNoise(), sourceNoise); }));
+
+            string gen1Level = "/Settings/AudioGen/Gen1/On/1000/-10";
+            tflp.Controls.Add(new TButton(gen1Level, async () => { await RunnerNoReturn(() => Qa402.SetGen1(1000, -10, true), gen1Level); }));
+
+            string NoiseGenLevel = "/Settings/NoiseGen/-10";
+            tflp.Controls.Add(new TButton(NoiseGenLevel, async () => { await RunnerNoReturn(() => Qa402.SetNoiseGen(-10), NoiseGenLevel); }));
 
             tgb.Controls.Add(tflp);
 

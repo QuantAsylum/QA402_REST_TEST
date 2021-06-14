@@ -83,6 +83,16 @@ namespace QA402_REST_TEST
             await Put(string.Format("/Settings/IdleGen/{0}", enable ? "On" : "Off"));
         }
 
+        static public async Task SetOutputSourceSine()
+        {
+            await Put(string.Format("/Settings/OutputSource/Sine"));
+        }
+
+        static public async Task SetOutputSourceNoise()
+        {
+            await Put(string.Format("/Settings/OutputSource/WhiteNoise"));
+        }
+
         static public async Task SetInputRange(int maxInputDbv, bool roundToNearest = false)
         {
             if (roundToNearest)
@@ -102,6 +112,11 @@ namespace QA402_REST_TEST
         static public async Task SetGen1(double freqHz, double ampDbv, bool enabled)
         {
             await Put(string.Format("/Settings/AudioGen/Gen1/{0}/{1}/{2}", enabled ? "On" : "Off", freqHz.ToString(), ampDbv.ToString()));
+        }
+
+        static public async Task SetNoiseGen(double ampDbv)
+        {
+            await Put(string.Format("/Settings/NoiseGen/{0}", ampDbv.ToString()));
         }
 
         static public async Task DoAcquisitionAsync(double[] left, double[] right)
