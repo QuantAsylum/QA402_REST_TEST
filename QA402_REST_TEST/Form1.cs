@@ -99,6 +99,9 @@ namespace QA402_REST_TEST
             string sThd = "GET ThdDb/1000/20000";
             tflp.Controls.Add(new TButton(sThd, async () => { await RunnerReturnDoublePair(() => Qa402.GetThdDb(1000, 20000), sThd + " Left:{0:0.0}dB  Right: {1:0.0}dB"); }));
 
+            string sSnr = "GET SnrDb/1000/20/20000";
+            tflp.Controls.Add(new TButton(sSnr, async () => { await RunnerReturnDoublePair(() => Qa402.GetSnrDb(1000, 20, 20000), sSnr + " Left:{0:0.0}dB  Right: {1:0.0}dB"); }));
+
             string sRms = "GET RmsDbv/20/2000";
             tflp.Controls.Add(new TButton(sRms, async () => { await RunnerReturnDoublePair(() => Qa402.GetRmsDbv(20, 20000), sRms + " Left:{0:0.0}dB  Right: {1:0.0}dB"); }));
             tgb.Controls.Add(tflp);

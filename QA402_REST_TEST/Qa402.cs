@@ -169,6 +169,14 @@ namespace QA402_REST_TEST
             return lrp;
         }
 
+        static public async Task<LeftRightPair> GetSnrDb(double fundFreq, double minFreq, double maxFreq)
+        {
+            Dictionary<string, string> d = await Get(string.Format("/SnrDb/{0}/{1}/{2}", fundFreq, minFreq, maxFreq));
+
+            LeftRightPair lrp = new LeftRightPair() { Left = Convert.ToDouble(d["Left"]), Right = Convert.ToDouble(d["Right"]) };
+            return lrp;
+        }
+
         static public async Task<LeftRightPair> GetThdnDb(double fundFreq, double minFreq, double maxFreq)
         {
             Dictionary<string, string> d = await Get(string.Format("/ThdnDb/{0}/{1}/{2}", fundFreq, minFreq, maxFreq));
