@@ -57,6 +57,9 @@ namespace QA402_REST_TEST
             string sVersion = "GET /Status/Version";
             tflp.Controls.Add(new TButton(sVersion, async () => { await RunnerReturnDouble(() => Qa402.GetVersion(), sVersion + "  Version: {0}"); }));
 
+            string sConnection = "GET /Status/Connection";
+            tflp.Controls.Add(new TButton(sConnection, async () => { await RunnerReturnBool(() => Qa402.IsConnected(), sConnection + "  IsConnected: {0}"); }));
+
             string sDefault = "PUT /Settings/Default";
             tflp.Controls.Add(new TButton(sDefault, async () => { await RunnerNoReturn(() => Qa402.SetDefaults(), sDefault); }));
 
@@ -72,6 +75,23 @@ namespace QA402_REST_TEST
             string bufferSizeSmall = "/Settings/BuffersSize/2^12";
             tflp.Controls.Add(new TButton(bufferSizeSmall, async () => { await RunnerNoReturn(() => Qa402.SetBufferSize((uint)Math.Pow(2, 12)), bufferSizeSmall); }));
 
+            string setWindowRectangle = "/Settings/Windowing/Rectangle";
+            tflp.Controls.Add(new TButton(setWindowRectangle, async () => { await RunnerNoReturn(() => Qa402.SetWindowing(Windowing.Rectangle), setWindowRectangle); }));
+
+            string setWindowFlatTop = "/Settings/Windowing/FlatTop";
+            tflp.Controls.Add(new TButton(setWindowFlatTop, async () => { await RunnerNoReturn(() => Qa402.SetWindowing(Windowing.FlatTop), setWindowFlatTop); }));
+
+            string setSampleRate192 = "/Settings/SampleRate/192000";
+            tflp.Controls.Add(new TButton(setSampleRate192, async () => { await RunnerNoReturn(() => Qa402.SetSampleRate(192000), setSampleRate192); }));
+            string setSampleRate48 = "/Settings/SampleRate/48000";
+            tflp.Controls.Add(new TButton(setSampleRate48, async () => { await RunnerNoReturn(() => Qa402.SetSampleRate(48000), setSampleRate48); }));
+
+            string setWeightingNone = "/Settings/Weighting/None";
+            tflp.Controls.Add(new TButton(setWeightingNone, async () => { await RunnerNoReturn(() => Qa402.SetWeighting(Weighting.None), setWeightingNone); }));
+
+            string setWeightingAWeighting = "/Settings/Weighting/AWeighting";
+            tflp.Controls.Add(new TButton(setWeightingAWeighting, async () => { await RunnerNoReturn(() => Qa402.SetWeighting(Weighting.AWeighting), setWeightingAWeighting); }));
+
             string idleGenOn = "/Settings/IdleGen/On";
             tflp.Controls.Add(new TButton(idleGenOn, async () => { await RunnerNoReturn(() => Qa402.SetIdleGen(true), idleGenOn); }));
 
@@ -79,16 +99,22 @@ namespace QA402_REST_TEST
             tflp.Controls.Add(new TButton(idleGenOff, async () => { await RunnerNoReturn(() => Qa402.SetIdleGen(false), idleGenOff); }));
 
             string sourceSine = "/Settings/OutputSource/Sine";
-            tflp.Controls.Add(new TButton(sourceSine, async () => { await RunnerNoReturn(() => Qa402.SetOutputSourceSine(), sourceSine); }));
+            tflp.Controls.Add(new TButton(sourceSine, async () => { await RunnerNoReturn(() => Qa402.SetOutputSource(OutputSources.Sine), sourceSine); }));
 
             string sourceNoise = "/Settings/OutputSource/WhiteNoise";
-            tflp.Controls.Add(new TButton(sourceNoise, async () => { await RunnerNoReturn(() => Qa402.SetOutputSourceNoise(), sourceNoise); }));
+            tflp.Controls.Add(new TButton(sourceNoise, async () => { await RunnerNoReturn(() => Qa402.SetOutputSource(OutputSources.WhiteNoise), sourceNoise); }));
+
+            string sourceExpoChirp = "/Settings/OutputSource/ExpoChirp";
+            tflp.Controls.Add(new TButton(sourceExpoChirp, async () => { await RunnerNoReturn(() => Qa402.SetOutputSource(OutputSources.ExpoChirp), sourceNoise); }));
 
             string gen1Level = "/Settings/AudioGen/Gen1/On/1000/-10";
             tflp.Controls.Add(new TButton(gen1Level, async () => { await RunnerNoReturn(() => Qa402.SetGen1(1000, -10, true), gen1Level); }));
 
             string NoiseGenLevel = "/Settings/NoiseGen/-10";
             tflp.Controls.Add(new TButton(NoiseGenLevel, async () => { await RunnerNoReturn(() => Qa402.SetNoiseGen(-10), NoiseGenLevel); }));
+
+            string ExpoChirp = "/Settings/ExpoChirpGen/-10/0.0/48/False/True";
+            tflp.Controls.Add(new TButton(ExpoChirp, async () => { await RunnerNoReturn(() => Qa402.SetExpoChirpGen(-10, 0, 48, false), ExpoChirp); }));
 
             tgb.Controls.Add(tflp);
 
@@ -97,14 +123,15 @@ namespace QA402_REST_TEST
             tgb = new TGroupBox("Measurements");
             tflp = new TFlowLayoutPanel();
             string sThd = "GET ThdDb/1000/20000";
-            tflp.Controls.Add(new TButton(sThd, async () => { await RunnerReturnDoublePair(() => Qa402.GetThdDb(1000, 20000), sThd + " Left:{0:0.0}dB  Right: {1:0.0}dB"); }));
+            tflp.Controls.Add(new TButton(sThd, async () => { await RunnerReturnDoublePair(() => Qa402.GetThdDb(1000, 20000), sThd + " Left:{0:0.00}dB  Right: {1:0.00}dB"); }));
 
             string sSnr = "GET SnrDb/1000/20/20000";
-            tflp.Controls.Add(new TButton(sSnr, async () => { await RunnerReturnDoublePair(() => Qa402.GetSnrDb(1000, 20, 20000), sSnr + " Left:{0:0.0}dB  Right: {1:0.0}dB"); }));
+            tflp.Controls.Add(new TButton(sSnr, async () => { await RunnerReturnDoublePair(() => Qa402.GetSnrDb(1000, 20, 20000), sSnr + " Left:{0:0.00}dB  Right: {1:0.00}dB"); }));
 
             string sRms = "GET RmsDbv/20/2000";
-            tflp.Controls.Add(new TButton(sRms, async () => { await RunnerReturnDoublePair(() => Qa402.GetRmsDbv(20, 20000), sRms + " Left:{0:0.0}dB  Right: {1:0.0}dB"); }));
+            tflp.Controls.Add(new TButton(sRms, async () => { await RunnerReturnDoublePair(() => Qa402.GetRmsDbv(20, 20000), sRms + " Left:{0:0.00}dB  Right: {1:0.00}dB"); }));
             tgb.Controls.Add(tflp);
+
             Tlp.Controls.Add(tgb);
 
             tgb = new TGroupBox("Acquisition");

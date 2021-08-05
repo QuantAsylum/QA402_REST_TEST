@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -10,6 +12,12 @@ using System.Web;
 
 namespace QA402_REST_TEST
 {
+    public enum OutputSources { Off, User, Sine, Multitone, WhiteNoise, ExpoChirp }
+
+    public enum Windowing { Rectangle, Bartlett, Hamming, Hann, FlatTop }
+
+    public enum Weighting { None, AWeighting, User }
+
     class LeftRightPair
     {
         public double Left;
@@ -61,6 +69,12 @@ namespace QA402_REST_TEST
             return Convert.ToDouble(s);
         }
 
+        static public async Task<bool> IsConnected()
+        {
+            string s = await Get("/Status/Connection", "Value");
+            return Convert.ToBoolean(s);
+        }
+
         static public async Task SetDefaults(string fileName = "")
         {
             if (fileName == "")
@@ -78,19 +92,29 @@ namespace QA402_REST_TEST
             await Put(string.Format("/Settings/BufferSize/{0}", bufferSizePowerOfTwo));
         }
 
+        static public async Task SetSampleRate(uint sampleRate)
+        {
+            await Put(string.Format("/Settings/SampleRate/{0}", sampleRate));
+        }
+
         static public async Task SetIdleGen(bool enable)
         {
             await Put(string.Format("/Settings/IdleGen/{0}", enable ? "On" : "Off"));
         }
 
-        static public async Task SetOutputSourceSine()
+        static public async Task SetWindowing(Windowing w)
         {
-            await Put(string.Format("/Settings/OutputSource/Sine"));
+            await Put(string.Format("/Settings/Windowing/{0}", w.ToString()));
         }
 
-        static public async Task SetOutputSourceNoise()
+        static public async Task SetWeighting(Weighting w)
         {
-            await Put(string.Format("/Settings/OutputSource/WhiteNoise"));
+            await Put(string.Format("/Settings/Weighting/{0}", w.ToString()));
+        }
+
+        static public async Task SetOutputSource(OutputSources source)
+        {
+            await Put(string.Format("/Settings/OutputSource/{0}", source.ToString()));
         }
 
         static public async Task SetInputRange(int maxInputDbv, bool roundToNearest = false)
@@ -117,6 +141,17 @@ namespace QA402_REST_TEST
         static public async Task SetNoiseGen(double ampDbv)
         {
             await Put(string.Format("/Settings/NoiseGen/{0}", ampDbv.ToString()));
+        }
+
+        static public async Task SetExpoChirpGen(double ampDbv, double windowSec, int smoothDenominator, bool rightAsReference)
+        {
+            await Put(string.Format("/Settings/ExpoChirpGen/{0}/{1}/{2}/{3}",
+                ampDbv.ToString("0.0"),
+                windowSec.ToString("0.000"),
+                smoothDenominator.ToString(),
+                rightAsReference ? "True" : "False"
+                //displayAsGain ? "True" : "False"
+                )); ;
         }
 
         static public async Task DoAcquisitionAsync(double[] left, double[] right)
@@ -193,6 +228,14 @@ namespace QA402_REST_TEST
             return lrp;
         }
 
+        static public async Task<LeftRightPair> GetRmsAWeightingDbv(double startFreq, double endFreq, bool aWeighting = false)
+        {
+            Dictionary<string, string> d = await Get(string.Format("/RmsDbv/AWeighting/{0}{1}/{2}", aWeighting ? "AWeighting/" : "", startFreq, endFreq));
+
+            LeftRightPair lrp = new LeftRightPair() { Left = Convert.ToDouble(d["Left"]), Right = Convert.ToDouble(d["Right"]) };
+            return lrp;
+        }
+
         static public async Task<LeftRightTimeSeries> GetInputTimeSeries()
         {
             Dictionary<string, string> d = await Get(string.Format("/Data/Time/Input"));
@@ -210,6 +253,16 @@ namespace QA402_REST_TEST
 
             return lrfs;
         }
+
+        /*
+        static public async Task<Bitmap> GetGraph()
+        {
+            Dictionary<string, string> d = await Get(string.Format("/Data/Frequency/Input"));
+
+            LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries() { df = Convert.ToDouble(d["Dx"]), Left = ConvertBase64ToDoubles(d["Left"]), Right = ConvertBase64ToDoubles(d["Right"]) };
+
+            return lrfs;
+        }*/
 
 
 
@@ -283,6 +336,41 @@ namespace QA402_REST_TEST
             var result = JsonSerializer.Deserialize<Dictionary<string, string>>(content);
 
             return result;
+        }
+
+        static private async Task<Bitmap> GetBitmap(string url)
+        {
+            return null;
+            /*
+            BitmapImage bmp = new Bitmap();
+
+            string content;
+
+            Client.DefaultRequestHeaders.Clear();
+            HttpResponseMessage response = await Client.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+
+            using (MemoryStream inputStream = new MemoryStream())
+            {
+                await inputStream.CopyToAsync(inputStream);
+                bitmapImage.SetSource(inputStream.AsRandomAccessStream());
+            }
+
+           
+
+
+            var stream = await response.Content.ReadAsStreamAsync();
+            IRandomAccessStream reas = stream.As;
+
+            response.EnsureSuccessStatusCode();
+            content = response.Content.ReadAsStringAsync().Result;
+
+            // You need to use NUGET to install System.Text.Json from MSFT
+            var result = JsonSerializer.Deserialize<Dictionary<string, string>>(content);
+
+            return result;
+            */
         }
 
         static private async Task<string> Get(string url, string token)
