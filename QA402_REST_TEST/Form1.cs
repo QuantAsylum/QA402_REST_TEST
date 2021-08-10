@@ -162,6 +162,11 @@ namespace QA402_REST_TEST
             tgb.Controls.Add(tflp);
             Tlp.Controls.Add(tgb);
 
+            string sStepFreq = "Step Frequency";
+            tflp.Controls.Add(new TButton(sStepFreq, async () => { await RunnerReturnBool(() => StepFrequency(), sStepFreq); }));
+            tgb.Controls.Add(tflp);
+            Tlp.Controls.Add(tgb);
+
             string sFullMeasurementStart = "Full Measurement Start";
             tflp.Controls.Add(new TButton(sFullMeasurementStart, async () => 
             {
@@ -214,6 +219,58 @@ namespace QA402_REST_TEST
             Tlp.ResumeLayout();
         }
 
+        async Task<bool> StepFrequency()
+        {
+            LeftRightPair lrp;
+            double freq;
+
+            // Load a settings file with the particulars we want
+            await Qa402.SetDefaults("test16.settings");
+            await Qa402.SetBufferSize(8192);
+            await Qa402.SetInputRange(6);
+
+            // First measurement at 50 Hz
+            freq = 50;
+            await Qa402.SetGen1(freq, -2, true);
+            await Qa402.DoAcquisition();
+            // Check left and right measurements to make sure they make sense
+            lrp = await Qa402.GetRmsDbv(20, 22000);
+            if (lrp.Left < -4 || lrp.Left > 0)
+            {
+                // fail...the measured amplitude was not withing -4 dBV to 0 dBV
+            }
+            lrp = await Qa402.GetThdDb(freq, 22000);
+            if (lrp.Left < -130 || lrp.Left > -90)
+            {
+                // fail...the measured thd was not withing -130 to -90 dB
+            }
+
+            // Now repeat for other frequencies of interest. We'll ignore
+            freq = 100;
+            await Qa402.SetGen1(freq, -2, true);
+            await Qa402.DoAcquisition();
+            lrp = await Qa402.GetRmsDbv(20, 22000);
+            lrp = await Qa402.GetThdDb(freq, 22000);
+
+            freq = 1000;
+            await Qa402.SetGen1(freq, -2, true);
+            await Qa402.DoAcquisition();
+            lrp = await Qa402.GetRmsDbv(20, 22000);
+            lrp = await Qa402.GetThdDb(freq, 22000);
+
+            freq = 10000;
+            await Qa402.SetGen1(freq, -2, true);
+            await Qa402.DoAcquisition();
+            lrp = await Qa402.GetRmsDbv(20, 22000);
+            lrp = await Qa402.GetThdDb(freq, 22000);
+
+            freq = 20000;
+            await Qa402.SetGen1(freq, -2, true);
+            await Qa402.DoAcquisition();
+            lrp = await Qa402.GetRmsDbv(20, 22000);
+
+            return true;
+        }
 
 
         /// <summary>

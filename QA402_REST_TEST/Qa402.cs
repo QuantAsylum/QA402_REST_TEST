@@ -220,17 +220,9 @@ namespace QA402_REST_TEST
             return lrp;
         }
 
-        static public async Task<LeftRightPair> GetRmsDbv(double startFreq, double endFreq, bool aWeighting = false)
+        static public async Task<LeftRightPair> GetRmsDbv(double startFreq, double endFreq)
         {
-            Dictionary<string, string> d = await Get(string.Format("/RmsDbv/{0}{1}/{2}", aWeighting ? "AWeighting/" : "", startFreq, endFreq));
-
-            LeftRightPair lrp = new LeftRightPair() { Left = Convert.ToDouble(d["Left"]), Right = Convert.ToDouble(d["Right"]) };
-            return lrp;
-        }
-
-        static public async Task<LeftRightPair> GetRmsAWeightingDbv(double startFreq, double endFreq, bool aWeighting = false)
-        {
-            Dictionary<string, string> d = await Get(string.Format("/RmsDbv/AWeighting/{0}{1}/{2}", aWeighting ? "AWeighting/" : "", startFreq, endFreq));
+            Dictionary<string, string> d = await Get(string.Format("/RmsDbv/{0}/{1}",  startFreq, endFreq));
 
             LeftRightPair lrp = new LeftRightPair() { Left = Convert.ToDouble(d["Left"]), Right = Convert.ToDouble(d["Right"]) };
             return lrp;
