@@ -31,7 +31,7 @@ namespace QA402_REST_TEST
             Tlp.Dock = DockStyle.Fill;
 
             TGroupBox tgb = new TGroupBox("Basic");
-            tgb.Height = 120;
+            tgb.Height = 190;
 
             TFlowLayoutPanel tflp = new TFlowLayoutPanel();
 
@@ -132,6 +132,10 @@ namespace QA402_REST_TEST
             tflp.Controls.Add(new TButton(sRms, async () => { await RunnerReturnDoublePair(() => Qa402.GetRmsDbv(20, 20000), sRms + " Left:{0:0.00}dB  Right: {1:0.00}dB"); }));
             tgb.Controls.Add(tflp);
 
+            string sFreq = "GET Data/Frequency/Input";
+            tflp.Controls.Add(new TButton(sFreq, async () => { await RunnerReturnDoubleArray(() => Qa402.GetInputFrequencySeries(), sFreq + " dF:{0:0.00}"); }));
+            tgb.Controls.Add(tflp);
+
             Tlp.Controls.Add(tgb);
 
             tgb = new TGroupBox("Acquisition");
@@ -140,32 +144,30 @@ namespace QA402_REST_TEST
             string sAcq = "POST /Acquisition";
             tflp.Controls.Add(new TButton(sAcq, async () => { await RunnerNoReturn(() => Qa402.DoAcquisition(), sAcq); }));
             tgb.Controls.Add(tflp);
-            Tlp.Controls.Add(tgb);
 
             string sAcqAsync = "POST /AcquisitionAsync";
             tflp.Controls.Add(new TButton(sAcqAsync, async () => { await RunnerNoReturn(() => Qa402.DoAcquisitionAsync(), sAcqAsync); }));
             tgb.Controls.Add(tflp);
-            Tlp.Controls.Add(tgb);
 
             string sAcqBusy = "POST /AcquisitionBusy";
             tflp.Controls.Add(new TButton(sAcqBusy, async () => { await RunnerReturnBool(() => Qa402.IsBusy(), sAcqBusy + " Busy: {0}"); }));
             tgb.Controls.Add(tflp);
-            Tlp.Controls.Add(tgb);
 
             string sStartAudition = "POST /AuditionStart/-2/TestFile.wav/0.9/true";
             tflp.Controls.Add(new TButton(sStartAudition, async () => { await RunnerReturnBool(() => Qa402.AuditionStart("TestFile.wav", -2, 0.9, false), sStartAudition); }));
             tgb.Controls.Add(tflp);
-            Tlp.Controls.Add(tgb);
 
             string sStopAudition = "POST /AuditionStop";
             tflp.Controls.Add(new TButton(sStopAudition, async () => { await RunnerReturnBool(() => Qa402.AuditionStop(), sStopAudition); }));
             tgb.Controls.Add(tflp);
-            Tlp.Controls.Add(tgb);
 
             string sStepFreq = "Step Frequency";
             tflp.Controls.Add(new TButton(sStepFreq, async () => { await RunnerReturnBool(() => StepFrequency(), sStepFreq); }));
             tgb.Controls.Add(tflp);
-            Tlp.Controls.Add(tgb);
+
+            string sMeasureFreqResponse = "Measure FreqResponse";
+            tflp.Controls.Add(new TButton(sMeasureFreqResponse, async () => { await RunnerReturnBool(() => MeasureFreqResponse(), sMeasureFreqResponse); }));
+            tgb.Controls.Add(tflp);
 
             string sFullMeasurementStart = "Full Measurement Start";
             tflp.Controls.Add(new TButton(sFullMeasurementStart, async () => 
@@ -175,7 +177,6 @@ namespace QA402_REST_TEST
                 await MakeMeasurement(Ct.Token); 
             }));
             tgb.Controls.Add(tflp);
-            Tlp.Controls.Add(tgb);
 
             string sFullMeasurementStop = "Full Measurement Stop";
             tflp.Controls.Add(new TButton(sFullMeasurementStop, async () =>
@@ -186,7 +187,6 @@ namespace QA402_REST_TEST
                 Ct.Cancel();
             }));
             tgb.Controls.Add(tflp);
-            Tlp.Controls.Add(tgb);
 
             string sStartRunning = "Start Running";
             tflp.Controls.Add(new TButton(sStartRunning, async () =>
@@ -196,7 +196,6 @@ namespace QA402_REST_TEST
                 await RunUntilStopped(Ct.Token);
             }));
             tgb.Controls.Add(tflp);
-            Tlp.Controls.Add(tgb);
 
             string sStopRunning = "Stop Running";
             tflp.Controls.Add(new TButton(sStopRunning, async () =>
@@ -207,15 +206,9 @@ namespace QA402_REST_TEST
                 Ct.Cancel();
             }));
             tgb.Controls.Add(tflp);
+            
+            
             Tlp.Controls.Add(tgb);
-
-
-
-
-
-
-
-
             Tlp.ResumeLayout();
         }
 
@@ -268,6 +261,49 @@ namespace QA402_REST_TEST
             await Qa402.SetGen1(freq, -2, true);
             await Qa402.DoAcquisition();
             lrp = await Qa402.GetRmsDbv(20, 22000);
+
+            return true;
+        }
+
+        async Task<bool> MeasureFreqResponse()
+        {
+            double freq, ampDbv;
+            int bin;
+
+            // Set defaults and the set options
+            await Qa402.SetDefaults();
+            await Qa402.SetBufferSize(32768);
+            await Qa402.SetInputRange(6);
+
+            // Set up chirp generation
+            await Qa402.SetOutputSource(OutputSources.ExpoChirp);
+            // Set -10 dBV sweep, with no windowing and no smoothing, and do NOT use right channel as reference
+            await Qa402.SetExpoChirpGen(-10, 0.0, 0, false);
+
+            // Do the acqusition. This will take about 1 second (32768/48000 = 682 mS)
+            await Qa402.DoAcquisition();
+
+            // Pull across the frequency series. The is an array of doubles for the
+            // left channel, and an array of doubles for the right. The Df parameter
+            // indicates the bin spacing in Hz
+            LeftRightFrequencySeries lrfs = await Qa402.GetInputFrequencySeries();
+
+            // Compute amplitude in dBV at 100 Hz, and deterine if OK
+            freq = 100;
+            // Find the FFT bin number of the frequency we want
+            bin = (int)Math.Round(freq / lrfs.Df);
+            // Convert to dBV
+            ampDbv = 20 * Math.Log10(lrfs.Left[bin]);
+
+            // Compute amplitude in dBV at 1 kHz, and deterine if OK
+            freq = 1000;
+            bin = (int)Math.Round(freq / lrfs.Df);
+            ampDbv = 20 * Math.Log10(lrfs.Left[bin]);
+
+            // Compute amplitude in dBV at 20 kHz, and deterine if OK
+            freq = 20000;
+            bin = (int)Math.Round(freq / lrfs.Df);
+            ampDbv = 20 * Math.Log10(lrfs.Left[bin]);
 
             return true;
         }
@@ -374,6 +410,20 @@ namespace QA402_REST_TEST
                 LeftRightPair lrp = await funcToRun();
 
                 LogLine(string.Format(s, lrp.Left, lrp.Right));
+            }
+            catch (Exception ex)
+            {
+                LogLine($"Exception: {ex.Message}");
+            }
+        }
+
+        async Task RunnerReturnDoubleArray(Func<Task<LeftRightFrequencySeries>> funcToRun, string s)
+        {
+            try
+            {
+                LeftRightFrequencySeries lrp = await funcToRun();
+
+                LogLine(string.Format(s, lrp.Df));
             }
             catch (Exception ex)
             {

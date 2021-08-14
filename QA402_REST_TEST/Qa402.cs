@@ -39,7 +39,7 @@ namespace QA402_REST_TEST
         /// <summary>
         /// df is the frequency spacing of FFT bins
         /// </summary>
-        public double df;
+        public double Df;
         public double[] Left;
         public double[] Right;
     }
@@ -241,7 +241,7 @@ namespace QA402_REST_TEST
         {
             Dictionary<string, string> d = await Get(string.Format("/Data/Frequency/Input"));
 
-            LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries() { df = Convert.ToDouble(d["Dx"]), Left = ConvertBase64ToDoubles(d["Left"]), Right = ConvertBase64ToDoubles(d["Right"]) };
+            LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries() { Df = Convert.ToDouble(d["Dx"]), Left = ConvertBase64ToDoubles(d["Left"]), Right = ConvertBase64ToDoubles(d["Right"]) };
 
             return lrfs;
         }
