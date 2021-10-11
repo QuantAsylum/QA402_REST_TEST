@@ -132,6 +132,10 @@ namespace QA402_REST_TEST
             tflp.Controls.Add(new TButton(sRms, async () => { await RunnerReturnDoublePair(() => Qa402.GetRmsDbv(20, 20000), sRms + " Left:{0:0.00}dB  Right: {1:0.00}dB"); }));
             tgb.Controls.Add(tflp);
 
+            string sPeakDbv = "GET PeakDbv/20/24000";
+            tflp.Controls.Add(new TButton(sPeakDbv, async () => { await RunnerReturnDoublePair(() => Qa402.GetPeakDbv(20, 24000), sRms + " Left:{0:0.00}dB  Right: {1:0.00}dB"); }));
+            tgb.Controls.Add(tflp);
+
             string sFreq = "GET Data/Frequency/Input";
             tflp.Controls.Add(new TButton(sFreq, async () => { await RunnerReturnDoubleArray(() => Qa402.GetInputFrequencySeries(), sFreq + " dF:{0:0.00}"); }));
             tgb.Controls.Add(tflp);
@@ -272,6 +276,7 @@ namespace QA402_REST_TEST
 
             // Set defaults and the set options
             await Qa402.SetDefaults();
+
             await Qa402.SetBufferSize(32768);
             await Qa402.SetInputRange(6);
 
@@ -304,6 +309,7 @@ namespace QA402_REST_TEST
             freq = 20000;
             bin = (int)Math.Round(freq / lrfs.Df);
             ampDbv = 20 * Math.Log10(lrfs.Left[bin]);
+
 
             return true;
         }

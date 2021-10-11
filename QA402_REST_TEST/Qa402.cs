@@ -10,6 +10,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 
+// Note! Install System.Text.Json via NuGet if you are taking Qa402.cs into another project!
+
 namespace QA402_REST_TEST
 {
     public enum OutputSources { Off, User, Sine, Multitone, WhiteNoise, ExpoChirp }
@@ -223,6 +225,14 @@ namespace QA402_REST_TEST
         static public async Task<LeftRightPair> GetRmsDbv(double startFreq, double endFreq)
         {
             Dictionary<string, string> d = await Get(string.Format("/RmsDbv/{0}/{1}",  startFreq, endFreq));
+
+            LeftRightPair lrp = new LeftRightPair() { Left = Convert.ToDouble(d["Left"]), Right = Convert.ToDouble(d["Right"]) };
+            return lrp;
+        }
+
+        static public async Task<LeftRightPair> GetPeakDbv(double startFreq, double endFreq)
+        {
+            Dictionary<string, string> d = await Get(string.Format("/PeakDbv/{0}/{1}", startFreq, endFreq));
 
             LeftRightPair lrp = new LeftRightPair() { Left = Convert.ToDouble(d["Left"]), Right = Convert.ToDouble(d["Right"]) };
             return lrp;
