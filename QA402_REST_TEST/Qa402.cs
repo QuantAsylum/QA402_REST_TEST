@@ -104,6 +104,16 @@ namespace QA402_REST_TEST
             await Put(string.Format("/Settings/IdleGen/{0}", enable ? "On" : "Off"));
         }
 
+        static public async Task SetI2sGen(bool enable)
+        {
+            await Put(string.Format("/Settings/I2sGen/{0}", enable ? "On" : "Off"));
+        }
+
+        static public async Task SetI2sGenWidth(int width)
+        {
+            await Put(string.Format("/Settings/I2sGen/Width/{0}", width));
+        }
+
         static public async Task SetWindowing(Windowing w)
         {
             await Put(string.Format("/Settings/Windowing/{0}", w.ToString()));

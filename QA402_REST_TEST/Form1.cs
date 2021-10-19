@@ -98,6 +98,18 @@ namespace QA402_REST_TEST
             string idleGenOff = "/Settings/IdleGen/Off";
             tflp.Controls.Add(new TButton(idleGenOff, async () => { await RunnerNoReturn(() => Qa402.SetIdleGen(false), idleGenOff); }));
 
+            string i2sGenOn = "/Settings/I2sGen/On";
+            tflp.Controls.Add(new TButton(i2sGenOn, async () => { await RunnerNoReturn(() => Qa402.SetI2sGen(true), i2sGenOn); }));
+
+            string i2sGenOff = "/Settings/I2sGen/Off";
+            tflp.Controls.Add(new TButton(i2sGenOff, async () => { await RunnerNoReturn(() => Qa402.SetI2sGen(false), i2sGenOff); }));
+
+            string i2sGenWidth16 = "/Settings/I2sGen/Width/16";
+            tflp.Controls.Add(new TButton(i2sGenWidth16, async () => { await RunnerNoReturn(() => Qa402.SetI2sGenWidth(16), i2sGenWidth16); }));
+
+            string i2sGenWidth32 = "/Settings/I2sGen/Width/32";
+            tflp.Controls.Add(new TButton(i2sGenWidth32, async () => { await RunnerNoReturn(() => Qa402.SetI2sGenWidth(32), i2sGenWidth32); }));
+
             string sourceSine = "/Settings/OutputSource/Sine";
             tflp.Controls.Add(new TButton(sourceSine, async () => { await RunnerNoReturn(() => Qa402.SetOutputSource(OutputSources.Sine), sourceSine); }));
 
