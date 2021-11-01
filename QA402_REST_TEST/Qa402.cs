@@ -166,7 +166,14 @@ namespace QA402_REST_TEST
                 )); ;
         }
 
-        static public async Task DoAcquisitionAsync(double[] left, double[] right)
+        /// <summary>
+        /// Performs an acquisition with user-submitted data being used as the stimulus. 
+        /// Function will await until acqusition is completed. 
+        /// /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        static public async Task DoAcquisition(double[] left, double[] right)
         {
             string l = Convert.ToBase64String(GetBytes(left));
             string r = Convert.ToBase64String(GetBytes(right));
@@ -176,12 +183,21 @@ namespace QA402_REST_TEST
             await Post("/Acquisition", s);
         }
 
+        /// <summary>
+        /// Performs an acquisition. Function will await until the acquisition is completed
+        /// </summary>
+        /// <returns></returns>
         static public async Task DoAcquisition()
         {
             await Post("/Acquisition");
         }
 
-        static public async Task DoAcquisitionAsync()
+        /// <summary>
+        /// Performs an acquisition and returns immediately. IsBusy() must be called to 
+        /// determine when acquisition is finished.
+        /// </summary>
+        /// <returns></returns>
+        static public void DoAcquisitionAsync()
         {
             _ = Task.Factory.StartNew(() =>
             {

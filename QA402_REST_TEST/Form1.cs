@@ -161,8 +161,17 @@ namespace QA402_REST_TEST
             tflp.Controls.Add(new TButton(sAcq, async () => { await RunnerNoReturn(() => Qa402.DoAcquisition(), sAcq); }));
             tgb.Controls.Add(tflp);
 
+            string sAcqUsrData = "POST /Acquisition w/UserData";
+            tflp.Controls.Add(new TButton(sAcqUsrData, async () =>
+            {
+                Ct?.Dispose();
+                Ct = new CancellationTokenSource();
+                await UserSubmittedStimulus(Ct.Token);
+            }));
+            tgb.Controls.Add(tflp);
+
             string sAcqAsync = "POST /AcquisitionAsync";
-            tflp.Controls.Add(new TButton(sAcqAsync, async () => { await RunnerNoReturn(() => Qa402.DoAcquisitionAsync(), sAcqAsync); }));
+            tflp.Controls.Add(new TButton(sAcqAsync, () => { Qa402.DoAcquisitionAsync(); }));
             tgb.Controls.Add(tflp);
 
             string sAcqBusy = "POST /AcquisitionBusy";
@@ -186,11 +195,11 @@ namespace QA402_REST_TEST
             tgb.Controls.Add(tflp);
 
             string sFullMeasurementStart = "Full Measurement Start";
-            tflp.Controls.Add(new TButton(sFullMeasurementStart, async () => 
+            tflp.Controls.Add(new TButton(sFullMeasurementStart, async () =>
             {
                 Ct?.Dispose();
                 Ct = new CancellationTokenSource();
-                await MakeMeasurement(Ct.Token); 
+                await MakeMeasurement(Ct.Token);
             }));
             tgb.Controls.Add(tflp);
 
@@ -222,8 +231,8 @@ namespace QA402_REST_TEST
                 Ct.Cancel();
             }));
             tgb.Controls.Add(tflp);
-            
-            
+
+
             Tlp.Controls.Add(tgb);
             Tlp.ResumeLayout();
         }
@@ -326,6 +335,33 @@ namespace QA402_REST_TEST
             return true;
         }
 
+        async Task UserSubmittedStimulus(CancellationToken ct)
+        {
+            int bufferSize = 8192; // Must be power of two
+            int sampleRate = 48000;
+
+            double[] data = new double[bufferSize];
+
+            // Fill the buffer with a sine wave that is 0 dBV = 1.41Vpk = 2.82Vpp
+            for (int i = 0; i < bufferSize; i++)
+            {
+                data[i] = Math.Sqrt(2) * Math.Sin(2.0 * Math.PI * 1000.0 * i / sampleRate);
+            }
+
+            // Clip the sine to +/- 1.2
+            for (int i = 0; i < bufferSize; i++)
+            {
+                if (data[i] > 1.2) data[i] = 1.2;
+                if (data[i] < -1.2) data[i] = -1.2;
+            }
+
+            // Do an acquisition withe data we created above
+            await Qa402.DoAcquisition(data, data);
+
+            // Analyze the captrued data
+            LeftRightTimeSeries lrts = await Qa402.GetInputTimeSeries();
+        }
+
 
         /// <summary>
         /// This function sets several parameters and collects the measurement result. This can act as a stress test and run
@@ -395,8 +431,13 @@ namespace QA402_REST_TEST
             }
         }
 
+        //
+        // The functions below (RunnerReturn*) exist so that we don't need try/catch above. This is make
+        // the button instantiation code as clean as possible since we have a of those to add
+        //
+
         /// <summary>
-        /// UI support code
+        /// UI support code. Runs a function that returns a double
         /// </summary>
         /// <param name="funcToRun"></param>
         /// <param name="s"></param>
@@ -416,7 +457,7 @@ namespace QA402_REST_TEST
         }
 
         /// <summary>
-        /// UI support code
+        /// UI support code. Runs a function that returns a double pair
         /// </summary>
         /// <param name="funcToRun"></param>
         /// <param name="s"></param>
@@ -435,6 +476,12 @@ namespace QA402_REST_TEST
             }
         }
 
+        /// <summary>
+        /// UI Support code. Runs a function that returns a double array
+        /// </summary>
+        /// <param name="funcToRun"></param>
+        /// <param name="s"></param>
+        /// <returns></returns>
         async Task RunnerReturnDoubleArray(Func<Task<LeftRightFrequencySeries>> funcToRun, string s)
         {
             try
@@ -450,7 +497,7 @@ namespace QA402_REST_TEST
         }
 
         /// <summary>
-        /// UI support code
+        /// UI support code. Runs a function that returns a bool
         /// </summary>
         /// <param name="funcToRun"></param>
         /// <param name="s"></param>
@@ -462,6 +509,20 @@ namespace QA402_REST_TEST
                 bool b = await funcToRun();
 
                 LogLine(string.Format(s, b.ToString()));
+            }
+            catch (Exception ex)
+            {
+                LogLine($"Exception: {ex.Message}");
+            }
+        }
+
+        async Task RunnerNoReturn(Action funcToRun, string s)
+        {
+            try
+            {
+                Log("Starting...");
+                funcToRun();
+                LogLine("Done.  " + s);
             }
             catch (Exception ex)
             {
@@ -489,10 +550,15 @@ namespace QA402_REST_TEST
             }
         }
 
+        /// <summary>
+        /// Logs a string to the text box
+        /// </summary>
+        /// <param name="s"></param>
         void Log(string s)
         {
             textBox1.AppendText(s);
         }
+
 
         void LogLine(string s)
         {
