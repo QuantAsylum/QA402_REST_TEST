@@ -133,7 +133,7 @@ namespace QA402_REST_TEST
         {
             if (roundToNearest)
             {
-                maxInputDbv = (int)Math.Round(maxInputDbv / 6f) * 6;
+                maxInputDbv = (int)Math.Round(maxInputDbv / 6f) * 6 + 6;
 
                 if (maxInputDbv > 42)
                     maxInputDbv = 42;
@@ -275,9 +275,13 @@ namespace QA402_REST_TEST
 
         static public async Task<LeftRightFrequencySeries> GetInputFrequencySeries()
         {
-            Dictionary<string, string> d = await Get(string.Format("/Data/Frequency/Input"));
+            DateTime now = DateTime.Now;
 
+            Dictionary<string, string> d = await Get(string.Format("/Data/Frequency/Input"));
             LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries() { Df = Convert.ToDouble(d["Dx"]), Left = ConvertBase64ToDoubles(d["Left"]), Right = ConvertBase64ToDoubles(d["Right"]) };
+
+            double elapsedMs = DateTime.Now.Subtract(now).TotalMilliseconds;
+            Console.WriteLine($"Left Array Size: {lrfs.Left.Length}  Elapsed Ms: {elapsedMs:0.0}");
 
             return lrfs;
         }

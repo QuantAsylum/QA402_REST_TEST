@@ -75,6 +75,9 @@ namespace QA402_REST_TEST
             string bufferSizeSmall = "/Settings/BuffersSize/2^12";
             tflp.Controls.Add(new TButton(bufferSizeSmall, async () => { await RunnerNoReturn(() => Qa402.SetBufferSize((uint)Math.Pow(2, 12)), bufferSizeSmall); }));
 
+            string bufferSizeMalformed = "/Settings/BuffersSize/4000 (error)";
+            tflp.Controls.Add(new TButton(bufferSizeMalformed, async () => { await RunnerNoReturn(() => Qa402.SetBufferSize(4000), bufferSizeMalformed); }));
+
             string setWindowRectangle = "/Settings/Windowing/Rectangle";
             tflp.Controls.Add(new TButton(setWindowRectangle, async () => { await RunnerNoReturn(() => Qa402.SetWindowing(Windowing.Rectangle), setWindowRectangle); }));
 
@@ -128,6 +131,18 @@ namespace QA402_REST_TEST
             string ExpoChirp = "/Settings/ExpoChirpGen/-10/0.0/48/False/True";
             tflp.Controls.Add(new TButton(ExpoChirp, async () => { await RunnerNoReturn(() => Qa402.SetExpoChirpGen(-10, 0, 48, false), ExpoChirp); }));
 
+            string fullRms = "RMS TE";
+            tflp.Controls.Add(new TButton(fullRms, async () =>
+            {
+
+                //await Qa402.SetDefaults();
+                await Qa402.SetInputRange(0);
+                await Qa402.SetGen1(1000, -10, true);
+                await Qa402.SetBufferSize(4096);
+                await Qa402.DoAcquisition();
+                await RunnerReturnDoublePair(() => Qa402.GetRmsDbv(20, 20000), fullRms + " Left:{0:0.00}dB  Right: {1:0.00}dB");
+            }));
+
             tgb.Controls.Add(tflp);
 
             Tlp.Controls.Add(tgb);
@@ -163,11 +178,11 @@ namespace QA402_REST_TEST
 
             string sAcqUsrData = "POST /Acquisition w/UserData";
             tflp.Controls.Add(new TButton(sAcqUsrData, async () =>
-            {
-                Ct?.Dispose();
-                Ct = new CancellationTokenSource();
-                await UserSubmittedStimulus(Ct.Token);
-            }));
+                {
+                    Ct?.Dispose();
+                    Ct = new CancellationTokenSource();
+                    await UserSubmittedStimulus(Ct.Token);
+                }));
             tgb.Controls.Add(tflp);
 
             string sAcqAsync = "POST /AcquisitionAsync";
@@ -196,40 +211,40 @@ namespace QA402_REST_TEST
 
             string sFullMeasurementStart = "Full Measurement Start";
             tflp.Controls.Add(new TButton(sFullMeasurementStart, async () =>
-            {
-                Ct?.Dispose();
-                Ct = new CancellationTokenSource();
-                await MakeMeasurement(Ct.Token);
-            }));
+                {
+                    Ct?.Dispose();
+                    Ct = new CancellationTokenSource();
+                    await MakeMeasurement(Ct.Token);
+                }));
             tgb.Controls.Add(tflp);
 
             string sFullMeasurementStop = "Full Measurement Stop";
             tflp.Controls.Add(new TButton(sFullMeasurementStop, async () =>
-            {
-                if (Ct == null)
-                    return;
+                {
+                    if (Ct == null)
+                        return;
 
-                Ct.Cancel();
-            }));
+                    Ct.Cancel();
+                }));
             tgb.Controls.Add(tflp);
 
             string sStartRunning = "Start Running";
             tflp.Controls.Add(new TButton(sStartRunning, async () =>
-            {
-                Ct?.Dispose();
-                Ct = new CancellationTokenSource();
-                await RunUntilStopped(Ct.Token);
-            }));
+                {
+                    Ct?.Dispose();
+                    Ct = new CancellationTokenSource();
+                    await RunUntilStopped(Ct.Token);
+                }));
             tgb.Controls.Add(tflp);
 
             string sStopRunning = "Stop Running";
             tflp.Controls.Add(new TButton(sStopRunning, async () =>
-            {
-                if (Ct == null)
-                    return;
+                {
+                    if (Ct == null)
+                        return;
 
-                Ct.Cancel();
-            }));
+                    Ct.Cancel();
+                }));
             tgb.Controls.Add(tflp);
 
 
@@ -378,8 +393,15 @@ namespace QA402_REST_TEST
             // Caller will set the cancellation token when it's time to stop
             while (ct.IsCancellationRequested == false)
             {
+                double outputLevelDbv = 0;
+
                 if (randomLevel)
-                    await Qa402.SetGen1(1000, r.Next(-40, 10), true);
+                {
+                    outputLevelDbv = r.Next(-40, 10);
+
+                    await Qa402.SetGen1(1000, outputLevelDbv, true);
+                    await Qa402.SetInputRange((int)outputLevelDbv, true);
+                }
                 else
                     await Qa402.SetGen1(1000, 0, true);
 
