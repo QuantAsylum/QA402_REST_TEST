@@ -352,9 +352,10 @@ namespace QA402_REST_TEST
 
         async Task UserSubmittedStimulus(CancellationToken ct)
         {
-            int bufferSize = 8192; // Must be power of two
+            uint bufferSize = 8192; // Must be power of two
             int sampleRate = 48000;
 
+            await Qa402.SetBufferSize(bufferSize);
             double[] data = new double[bufferSize];
 
             // Fill the buffer with a sine wave that is 0 dBV = 1.41Vpk = 2.82Vpp
